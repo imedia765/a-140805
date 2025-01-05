@@ -86,13 +86,13 @@ const SidePanel = ({ onTabChange, userRole }: SidePanelProps) => {
   };
 
   return (
-    <div className="h-full w-64 glass-card border-r border-white/10 flex flex-col">
-      <div className="flex-1 flex flex-col min-h-0"> {/* Added min-h-0 to allow content to scroll */}
+    <div className="fixed top-[4rem] left-0 bottom-0 w-64 glass-card border-r border-white/10 flex flex-col z-30">
+      <div className="flex-1 flex flex-col min-h-0">
         <div className="p-6">
           <h2 className="text-xl font-medium mb-6">Navigation</h2>
         </div>
         
-        <div className="flex-1 overflow-y-auto px-6"> {/* Added overflow-y-auto and padding */}
+        <div className="flex-1 overflow-y-auto px-6">
           <Tabs 
             defaultValue="dashboard" 
             orientation="vertical" 
@@ -115,7 +115,6 @@ const SidePanel = ({ onTabChange, userRole }: SidePanelProps) => {
         </div>
       </div>
 
-      {/* Logout button container - now sticky to bottom */}
       <div className="sticky bottom-0 w-full p-4 border-t border-white/10 bg-dashboard-dark">
         <button
           onClick={handleLogout}
