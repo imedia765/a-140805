@@ -86,7 +86,7 @@ const SidePanel = ({ onTabChange, userRole }: SidePanelProps) => {
   };
 
   return (
-    <div className="fixed top-[4rem] left-0 bottom-0 w-64 glass-card border-r border-white/10 flex flex-col z-30">
+    <div className="h-full w-64 glass-card border-r border-white/10 flex flex-col">
       <div className="flex-1 flex flex-col min-h-0">
         <div className="p-6">
           <h2 className="text-xl font-medium mb-6">Navigation</h2>
@@ -115,7 +115,7 @@ const SidePanel = ({ onTabChange, userRole }: SidePanelProps) => {
         </div>
       </div>
 
-      <div className="sticky bottom-0 w-full p-4 border-t border-white/10 bg-dashboard-dark">
+      <div className="w-full p-4 border-t border-white/10 bg-dashboard-dark">
         <button
           onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-dashboard-accent1 hover:text-white hover:bg-dashboard-card rounded-md transition-colors"

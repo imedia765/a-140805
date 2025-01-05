@@ -10,7 +10,6 @@ import SystemToolsView from '@/components/SystemToolsView';
 import SidePanel from '@/components/SidePanel';
 import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from '@tanstack/react-query';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -21,7 +20,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { userRole, roleLoading, canAccessTab } = useRoleAccess();
-  const queryClient = useQueryClient();
 
   const checkAuth = async () => {
     try {
@@ -108,26 +106,29 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dashboard-dark flex flex-col">
-      <div className="w-full bg-dashboard-card/50 py-4 flex justify-between items-center px-6 border-b border-white/10">
-        <div className="lg:hidden">
+    <div className="min-h-screen bg-dashboard-dark">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-dashboard-card/50 py-4 px-6 border-b border-white/10">
+        <div className="flex items-center justify-between lg:justify-center">
           <Button
             variant="outline"
             size="icon"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="bg-dashboard-card/50 border-white/10"
+            className="lg:hidden bg-dashboard-card/50 border-white/10"
           >
             <Menu className="h-4 w-4" />
           </Button>
-        </div>
 
-        <div className="text-center flex-1">
-          <p className="text-xl text-white font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-          <p className="text-sm text-dashboard-accent1 mt-1">In the name of Allah, the Most Gracious, the Most Merciful</p>
+          <div className="text-center">
+            <p className="text-xl text-white font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+            <p className="text-sm text-dashboard-accent1 mt-1">In the name of Allah, the Most Gracious, the Most Merciful</p>
+          </div>
         </div>
-      </div>
+      </header>
       
-      <div className="flex flex-1 relative">
+      {/* Main layout */}
+      <div className="flex pt-16">
+        {/* Overlay for mobile */}
         {isSidebarOpen && (
           <div 
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -135,23 +136,26 @@ const Index = () => {
           />
         )}
 
-        <div className={`
-          fixed lg:relative inset-y-0 left-0 z-40 h-[calc(100vh-4rem)]
-          transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 transition-transform duration-200 ease-in-out
+        {/* Sidebar */}
+        <aside className={`
+          fixed lg:sticky top-16 h-[calc(100vh-4rem)] 
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          transition-transform duration-200 ease-in-out
+          z-50
         `}>
           <SidePanel 
             onTabChange={(tab) => {
               setActiveTab(tab);
               setIsSidebarOpen(false);
-            }} 
-            userRole={userRole} 
+            }}
+            userRole={userRole}
           />
-        </div>
+        </aside>
 
-        <div className="flex-1 overflow-auto p-8">
+        {/* Main content */}
+        <main className="flex-1 p-8 lg:pl-72">
           {renderContent()}
-        </div>
+        </main>
       </div>
     </div>
   );
