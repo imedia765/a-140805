@@ -108,8 +108,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-dashboard-dark">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-dashboard-card/50 py-4 px-6 border-b border-white/10">
-        <div className="flex items-center justify-between lg:justify-center">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-dashboard-card/50 backdrop-blur-sm py-4 px-6 border-b border-white/10">
+        <div className="flex items-center justify-between lg:justify-center max-w-screen-2xl mx-auto">
           <Button
             variant="outline"
             size="icon"
@@ -127,7 +127,7 @@ const Index = () => {
       </header>
       
       {/* Main layout */}
-      <div className="flex pt-16">
+      <div className="flex h-screen pt-16">
         {/* Overlay for mobile */}
         {isSidebarOpen && (
           <div 
@@ -138,10 +138,10 @@ const Index = () => {
 
         {/* Sidebar */}
         <aside className={`
-          fixed lg:sticky top-16 h-[calc(100vh-4rem)] 
+          fixed lg:static w-64 h-[calc(100vh-4rem)] top-16
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           transition-transform duration-200 ease-in-out
-          z-50
+          z-40
         `}>
           <SidePanel 
             onTabChange={(tab) => {
@@ -153,8 +153,10 @@ const Index = () => {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-8 lg:pl-72">
-          {renderContent()}
+        <main className="flex-1 min-h-[calc(100vh-4rem)] p-8 lg:pl-8 overflow-auto">
+          <div className="max-w-screen-2xl mx-auto">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </div>

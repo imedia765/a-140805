@@ -86,7 +86,7 @@ const SidePanel = ({ onTabChange, userRole }: SidePanelProps) => {
   };
 
   return (
-    <div className="h-full w-64 glass-card border-r border-white/10 flex flex-col">
+    <div className="h-full w-full glass-card border-r border-white/10 flex flex-col">
       <div className="flex-1 flex flex-col min-h-0">
         <div className="p-6">
           <h2 className="text-xl font-medium mb-6">Navigation</h2>
