@@ -20,25 +20,6 @@ interface FixRequestParams {
   issue_details: Record<string, any>;
 }
 
-interface FixResponse {
-  success: boolean;
-  message: string;
-  data?: SystemCheck[];
-}
-
-const getFixFunction = (checkType: string): FunctionName | null => {
-  switch (checkType) {
-    case 'Multiple Roles Assigned':
-      return "perform_user_roles_sync";
-    case 'Collectors Without Role':
-      return "validate_user_roles";
-    case 'Security Settings':
-      return "audit_security_settings";
-    default:
-      return null;
-  }
-};
-
 const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
   const { toast } = useToast();
   
@@ -71,10 +52,9 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data: responseData, error } = await supabase.rpc(
-        functionName,
-        { issue_details: details }
-      );
+      const { data: responseData, error } = await supabase.rpc(functionName as FunctionName, {
+        issue_details: details
+      });
       
       if (error) throw error;
 
