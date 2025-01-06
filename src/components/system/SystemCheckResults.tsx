@@ -12,7 +12,6 @@ interface SystemCheckResultsProps {
   checks: SystemCheck[];
 }
 
-// Update to match actual available RPC functions
 type FixFunction = 
   | "perform_user_roles_sync"
   | "validate_user_roles"
@@ -73,16 +72,16 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data, error } = await supabase.rpc(functionName, { 
+      const { data: responseData, error } = await supabase.rpc<FixResponse>(functionName, { 
         issue_details: details 
-      }) as { data: FixResponse | null, error: any };
+      });
       
       if (error) throw error;
 
-      if (data && 'success' in data && 'message' in data) {
+      if (responseData && 'success' in responseData && 'message' in responseData) {
         toast({
           title: "Fix Applied",
-          description: data.message || `Successfully resolved ${checkType} issue`,
+          description: responseData.message || `Successfully resolved ${checkType} issue`,
         });
       } else {
         toast({
