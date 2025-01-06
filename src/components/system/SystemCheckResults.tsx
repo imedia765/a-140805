@@ -13,10 +13,8 @@ interface SystemCheckResultsProps {
   checks: SystemCheck[];
 }
 
-type FixFunction = 
-  | "perform_user_roles_sync"
-  | "validate_user_roles"
-  | "audit_security_settings";
+type DatabaseFunctions = Database['public']['Functions'];
+type FunctionName = keyof DatabaseFunctions;
 
 interface FixRequestParams {
   issue_details: Record<string, any>;
@@ -28,7 +26,7 @@ interface FixResponse {
   data?: SystemCheck[];
 }
 
-const getFixFunction = (checkType: string): FixFunction | null => {
+const getFixFunction = (checkType: string): FunctionName | null => {
   switch (checkType) {
     case 'Multiple Roles Assigned':
       return "perform_user_roles_sync";
@@ -73,8 +71,8 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data: responseData, error } = await supabase.rpc<FixResponse, FixRequestParams>(
-        functionName, 
+      const { data: responseData, error } = await supabase.rpc(
+        functionName,
         { issue_details: details }
       );
       
