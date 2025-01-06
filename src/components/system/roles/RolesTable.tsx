@@ -25,28 +25,37 @@ export const RolesTable = ({ searchTerm }: RolesTableProps) => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['users', searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get members matching the search term
+      const { data: members, error: membersError } = await supabase
         .from('members')
-        .select(`
-          id,
-          member_number,
-          full_name,
-          auth_user_id,
-          user_roles!inner (
-            role
-          )
-        `)
+        .select('id, member_number, full_name, auth_user_id')
         .ilike('full_name', `%${searchTerm}%`)
         .order('full_name');
 
-      if (error) throw error;
+      if (membersError) throw membersError;
 
-      return data.map((user: any) => ({
-        id: user.id,
-        member_number: user.member_number,
-        full_name: user.full_name,
-        roles: user.user_roles.map((r: any) => r.role)
-      }));
+      // Then get roles for each member
+      const usersWithRoles: UserWithRoles[] = [];
+      
+      for (const member of members || []) {
+        if (member.auth_user_id) {
+          const { data: roles, error: rolesError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', member.auth_user_id);
+
+          if (rolesError) throw rolesError;
+
+          usersWithRoles.push({
+            id: member.id,
+            member_number: member.member_number,
+            full_name: member.full_name,
+            roles: roles?.map(r => r.role) || []
+          });
+        }
+      }
+
+      return usersWithRoles;
     }
   });
 
