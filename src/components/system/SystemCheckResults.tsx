@@ -18,9 +18,13 @@ type FixFunction =
   | "validate_user_roles"
   | "audit_security_settings";
 
+interface FixRequestParams {
+  issue_details: Record<string, any>;
+}
+
 interface FixResponse {
-  success?: boolean;
-  message?: string;
+  success: boolean;
+  message: string;
   data?: SystemCheck[];
 }
 
@@ -69,7 +73,7 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data, error } = await supabase.rpc<FixResponse>(functionName, { 
+      const { data, error } = await supabase.rpc<FixResponse, FixRequestParams>(functionName, { 
         issue_details: details 
       });
       
