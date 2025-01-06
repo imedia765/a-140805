@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RoleBadge } from "@/components/profile/RoleBadge";
+import RoleBadge from "@/components/profile/RoleBadge";
 
 interface UserWithRoles {
   id: string;
