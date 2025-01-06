@@ -17,7 +17,7 @@ type UserRole = {
   member_number: string;
 }
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 7;
 
 const RoleManagementCard = () => {
   const { toast } = useToast();
@@ -88,37 +88,40 @@ const RoleManagementCard = () => {
 
   return (
     <Card className="bg-dashboard-card border-white/10">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-dashboard-accent1" />
-            <CardTitle className="text-xl text-white">Role Management</CardTitle>
+            <CardTitle className="text-xl font-semibold text-white">Role Management</CardTitle>
           </div>
         </div>
-        <CardDescription className="text-dashboard-muted">
+        <CardDescription className="text-dashboard-text mt-2">
           Manage user roles and permissions
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <div className="mb-6 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dashboard-muted h-4 w-4" />
           <Input
             type="text"
             placeholder="Search by name or member number..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-dashboard-card border-white/10 focus:border-white/20"
+            className="pl-10 bg-dashboard-card/50 border-white/10 focus:border-white/20 text-dashboard-text placeholder:text-dashboard-muted"
           />
         </div>
         
-        <ScrollArea className="h-[400px] w-full rounded-md">
+        <ScrollArea className="h-[400px] w-full rounded-md pr-4">
           <div className="space-y-4">
             {users?.map((user) => (
-              <div key={user.user_id} className="flex items-center justify-between p-4 bg-dashboard-card/50 rounded-lg border border-white/10">
+              <div 
+                key={user.user_id} 
+                className="flex items-center justify-between p-5 bg-dashboard-card/50 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200"
+              >
                 <div className="flex items-center gap-4">
                   <Users className="h-5 w-5 text-dashboard-accent2" />
                   <div>
-                    <p className="text-white font-medium">{user.full_name}</p>
+                    <p className="text-white font-medium mb-1">{user.full_name}</p>
                     <p className="text-sm text-dashboard-muted">Member #{user.member_number}</p>
                   </div>
                 </div>
@@ -126,25 +129,25 @@ const RoleManagementCard = () => {
                   value={user.roles?.[0] || 'member'}
                   onValueChange={(value: Database['public']['Enums']['app_role']) => handleRoleChange(user.user_id, value)}
                 >
-                  <SelectTrigger className="w-[140px] bg-dashboard-card border-dashboard-accent1/20">
+                  <SelectTrigger className="w-[140px] bg-dashboard-card border-dashboard-accent1/20 text-dashboard-text">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">
+                  <SelectContent className="bg-dashboard-card border-white/10">
+                    <SelectItem value="admin" className="text-dashboard-text">
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
+                        <Shield className="w-4 h-4 text-dashboard-accent1" />
                         Admin
                       </div>
                     </SelectItem>
-                    <SelectItem value="collector">
+                    <SelectItem value="collector" className="text-dashboard-text">
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
+                        <Shield className="w-4 h-4 text-dashboard-accent2" />
                         Collector
                       </div>
                     </SelectItem>
-                    <SelectItem value="member">
+                    <SelectItem value="member" className="text-dashboard-text">
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
+                        <Shield className="w-4 h-4 text-dashboard-accent3" />
                         Member
                       </div>
                     </SelectItem>
@@ -155,13 +158,13 @@ const RoleManagementCard = () => {
           </div>
         </ScrollArea>
         
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mt-6">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
             disabled={currentPage === 0}
-            className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10"
+            className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10 text-dashboard-text"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -170,7 +173,7 @@ const RoleManagementCard = () => {
             size="sm"
             onClick={() => setCurrentPage(p => p + 1)}
             disabled={!users || users.length < ITEMS_PER_PAGE}
-            className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10"
+            className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10 text-dashboard-text"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
