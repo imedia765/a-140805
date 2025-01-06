@@ -5,12 +5,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Database } from "@/integrations/supabase/types";
-import { Input } from "@/components/ui/input";
+import RoleManagementHeader from './roles/RoleManagementHeader';
+import UserRoleCard from './roles/UserRoleCard';
 
-type UserRole = {
+interface UserRole {
   user_id: string;
   role: Database['public']['Enums']['app_role'];
   full_name: string;
@@ -34,7 +34,6 @@ const RoleManagementCard = () => {
   const { data: users, refetch: refetchUsers } = useQuery({
     queryKey: ['users-with-roles', searchTerm, currentPage],
     queryFn: async () => {
-      // First get members
       const { data: members, error: membersError } = await supabase
         .from('members')
         .select('auth_user_id, full_name, member_number')
@@ -43,7 +42,6 @@ const RoleManagementCard = () => {
 
       if (membersError) throw membersError;
 
-      // Then get all roles for these users
       const userIds = members.map(m => m.auth_user_id).filter(Boolean);
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
@@ -52,7 +50,6 @@ const RoleManagementCard = () => {
 
       if (rolesError) throw rolesError;
 
-      // Map roles to users
       const usersWithRoles = members.map(member => {
         const userRoles = roles.filter(role => role.user_id === member.auth_user_id);
         const rolesList = userRoles.map(r => r.role);
@@ -115,65 +112,19 @@ const RoleManagementCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-6 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dashboard-muted h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Search by name or member number..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-dashboard-card/50 border-white/10 focus:border-white/20 text-dashboard-text placeholder:text-dashboard-muted"
-          />
-        </div>
+        <RoleManagementHeader 
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
         
         <ScrollArea className="h-[400px] w-full rounded-md pr-4">
           <div className="space-y-4">
             {users?.map((user) => (
-              <div 
-                key={user.user_id} 
-                className="flex items-center justify-between p-5 bg-dashboard-card/50 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200"
-              >
-                <div className="flex items-center gap-4">
-                  <Users className="h-5 w-5 text-dashboard-accent2" />
-                  <div>
-                    <p className="text-white font-medium mb-1">{user.full_name}</p>
-                    <p className="text-sm text-dashboard-muted">Member #{user.member_number}</p>
-                    {user.roles && user.roles.length > 1 && (
-                      <p className="text-xs text-dashboard-accent1 mt-1">
-                        All roles: {user.roles.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Select
-                  value={user.role}
-                  onValueChange={(value: Database['public']['Enums']['app_role']) => handleRoleChange(user.user_id, value)}
-                >
-                  <SelectTrigger className="w-[140px] bg-dashboard-card border-dashboard-accent1/20 text-dashboard-text">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-dashboard-card border-white/10">
-                    <SelectItem value="admin" className="text-dashboard-text">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-dashboard-accent1" />
-                        Admin
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="collector" className="text-dashboard-text">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-dashboard-accent2" />
-                        Collector
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="member" className="text-dashboard-text">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-dashboard-accent3" />
-                        Member
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <UserRoleCard
+                key={user.user_id}
+                user={user}
+                onRoleChange={handleRoleChange}
+              />
             ))}
           </div>
         </ScrollArea>
