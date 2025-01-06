@@ -16,8 +16,9 @@ interface SystemCheckResultsProps {
 type DatabaseFunctions = Database['public']['Functions'];
 type FunctionName = keyof DatabaseFunctions;
 
-interface FixRequestParams {
-  issue_details: Record<string, any>;
+type RPCParams = {
+  issue_details?: Record<string, any>;
+  [key: string]: any;
 }
 
 const getFixFunction = (checkType: string): FunctionName | null => {
@@ -67,9 +68,11 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data: responseData, error } = await supabase.rpc(functionName, {
+      const params: RPCParams = {
         issue_details: details
-      } as FixRequestParams);
+      };
+
+      const { data: responseData, error } = await supabase.rpc(functionName, params);
       
       if (error) throw error;
 
