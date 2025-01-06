@@ -11,7 +11,9 @@ export const runAdditionalChecks = async (): Promise<SystemCheck[]> => {
       id,
       member_id,
       collector_id,
-      members!inner(collector)
+      members!payment_requests_member_id_fkey (
+        collector
+      )
     `);
 
   if (!paymentError && paymentRequests) {
@@ -44,7 +46,10 @@ export const runAdditionalChecks = async (): Promise<SystemCheck[]> => {
       member_number,
       full_name,
       status,
-      payment_requests!inner(id, status)
+      payment_requests!payment_requests_member_id_fkey (
+        id,
+        status
+      )
     `)
     .eq('status', 'inactive')
     .eq('payment_requests.status', 'pending');
