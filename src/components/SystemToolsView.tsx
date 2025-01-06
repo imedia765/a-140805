@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Info, FileDown, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import SystemCheckProgress from './system/SystemCheckProgress';
 import SystemCheckResults from './system/SystemCheckResults';
 import RoleManagementCard from './system/RoleManagementCard';
+import { runAdditionalChecks } from './system/AdditionalSystemChecks';
 import { generateSystemCheckPDF } from '@/utils/systemPdfGenerator';
 import { SystemCheck, MemberNumberCheck } from '@/types/system';
 
@@ -107,6 +107,7 @@ const SystemToolsView = () => {
     try {
       let allChecks: SystemCheck[] = [];
       
+      // Run database function checks
       for (const check of CHECKS) {
         setCurrentCheck(check.name);
         console.log(`Running ${check.name}...`);
@@ -133,6 +134,12 @@ const SystemToolsView = () => {
         setCompletedChecks(prev => prev + 1);
         await delay(800);
       }
+
+      // Run additional checks
+      setCurrentCheck('Additional System Checks');
+      const additionalChecks = await runAdditionalChecks();
+      allChecks = [...allChecks, ...additionalChecks];
+      setCompletedChecks(prev => prev + 1);
 
       setSystemChecks(allChecks);
       toast({
