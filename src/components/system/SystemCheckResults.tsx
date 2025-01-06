@@ -6,12 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getStatusColor, getStatusIcon } from "./utils/systemCheckUtils";
 import { SystemCheckDetailsTable } from "./SystemCheckDetailsTable";
 import { SystemCheckActionButton } from "./SystemCheckActionButton";
-
-interface SystemCheck {
-  check_type: string;
-  status: string;
-  details: any;
-}
+import { SystemCheck } from "@/types/system";
 
 interface SystemCheckResultsProps {
   checks: SystemCheck[];
@@ -22,6 +17,12 @@ type FixFunction =
   | "perform_user_roles_sync"
   | "validate_user_roles"
   | "audit_security_settings";
+
+interface FixResponse {
+  success?: boolean;
+  message?: string;
+  data?: SystemCheck[];
+}
 
 const getFixFunction = (checkType: string): FixFunction | null => {
   switch (checkType) {
@@ -68,7 +69,7 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data, error } = await supabase.rpc(functionName, { 
+      const { data, error } = await supabase.rpc<FixResponse>(functionName, { 
         issue_details: details 
       });
       
@@ -76,7 +77,7 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
       
       toast({
         title: "Fix Applied",
-        description: typeof data === 'string' ? data : `Successfully resolved ${checkType} issue`,
+        description: data?.message || `Successfully resolved ${checkType} issue`,
       });
     } catch (error: any) {
       console.error('Fix error:', error);
