@@ -15,9 +15,16 @@ type UserRole = {
   role: Database['public']['Enums']['app_role'];
   full_name: string;
   member_number: string;
+  roles?: Database['public']['Enums']['app_role'][];
 }
 
 const ITEMS_PER_PAGE = 7;
+
+const getHighestRole = (roles: Database['public']['Enums']['app_role'][]): Database['public']['Enums']['app_role'] => {
+  if (roles.includes('admin')) return 'admin';
+  if (roles.includes('collector')) return 'collector';
+  return 'member';
+};
 
 const RoleManagementCard = () => {
   const { toast } = useToast();
@@ -27,6 +34,7 @@ const RoleManagementCard = () => {
   const { data: users, refetch: refetchUsers } = useQuery({
     queryKey: ['users-with-roles', searchTerm, currentPage],
     queryFn: async () => {
+      // First get members
       const { data: members, error: membersError } = await supabase
         .from('members')
         .select('auth_user_id, full_name, member_number')
@@ -35,22 +43,29 @@ const RoleManagementCard = () => {
 
       if (membersError) throw membersError;
 
+      // Then get all roles for these users
+      const userIds = members.map(m => m.auth_user_id).filter(Boolean);
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('user_id, role')
+        .in('user_id', userIds);
 
       if (rolesError) throw rolesError;
 
+      // Map roles to users
       const usersWithRoles = members.map(member => {
         const userRoles = roles.filter(role => role.user_id === member.auth_user_id);
+        const rolesList = userRoles.map(r => r.role);
         return {
           user_id: member.auth_user_id,
           full_name: member.full_name,
           member_number: member.member_number,
-          roles: userRoles.map(r => r.role)
+          roles: rolesList,
+          role: rolesList.length > 0 ? getHighestRole(rolesList) : 'member'
         };
       });
 
+      console.log('Users with roles:', usersWithRoles);
       return usersWithRoles;
     }
   });
@@ -123,10 +138,15 @@ const RoleManagementCard = () => {
                   <div>
                     <p className="text-white font-medium mb-1">{user.full_name}</p>
                     <p className="text-sm text-dashboard-muted">Member #{user.member_number}</p>
+                    {user.roles && user.roles.length > 1 && (
+                      <p className="text-xs text-dashboard-accent1 mt-1">
+                        All roles: {user.roles.join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Select
-                  value={user.roles?.[0] || 'member'}
+                  value={user.role}
                   onValueChange={(value: Database['public']['Enums']['app_role']) => handleRoleChange(user.user_id, value)}
                 >
                   <SelectTrigger className="w-[140px] bg-dashboard-card border-dashboard-accent1/20 text-dashboard-text">
