@@ -12,6 +12,7 @@ import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { useToast } from "@/hooks/use-toast";
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -20,6 +21,33 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { userRole, roleLoading, canAccessTab } = useRoleAccess();
+  const queryClient = useQueryClient();
+
+  const handleSessionError = async () => {
+    console.log('Session error detected, cleaning up...');
+    
+    try {
+      // Clear all queries
+      await queryClient.invalidateQueries();
+      await queryClient.resetQueries();
+      
+      // Clear local storage
+      localStorage.clear();
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      toast({
+        title: "Session expired",
+        description: "Please sign in again",
+      });
+      
+      navigate('/login');
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      window.location.href = '/login';
+    }
+  };
 
   const checkAuth = async () => {
     try {
@@ -28,29 +56,44 @@ const Index = () => {
       
       if (error) {
         console.error('Auth check error:', error);
-        throw error;
+        await handleSessionError();
+        return;
       }
 
       if (!session) {
         console.log('No active session found, redirecting to login...');
-        navigate('/login');
+        await handleSessionError();
+        return;
+      }
+
+      // Verify the session is still valid by making a test request
+      const { error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('User verification failed:', userError);
+        await handleSessionError();
         return;
       }
 
       console.log('Active session found for user:', session.user.id);
     } catch (error: any) {
       console.error('Authentication check failed:', error);
-      toast({
-        title: "Authentication Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      navigate('/login');
+      await handleSessionError();
     }
   };
 
   useEffect(() => {
     checkAuth();
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        await handleSessionError();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

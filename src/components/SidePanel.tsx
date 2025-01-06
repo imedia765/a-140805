@@ -18,24 +18,67 @@ const SidePanel = ({ onTabChange, userRole }: SidePanelProps) => {
 
   const handleLogout = async () => {
     try {
-      await queryClient.invalidateQueries();
-      await queryClient.resetQueries();
+      // First check if we have a valid session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
+      if (sessionError) {
+        console.error('Session check error:', sessionError);
+        // If there's a session error, we should clean up anyway
+        await cleanup();
+        return;
+      }
+
+      // If we have no session, just clean up and redirect
+      if (!session) {
+        console.log('No active session found, cleaning up...');
+        await cleanup();
+        return;
+      }
+
+      // Attempt to sign out
       const { error } = await supabase.auth.signOut();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Logout error:', error);
+        // Even if logout fails, we should clean up local state
+        await cleanup();
+        return;
+      }
 
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
+
     } catch (error: any) {
       console.error('Logout error:', error);
+      // Ensure cleanup happens even if there's an error
+      await cleanup();
+    }
+  };
+
+  // Separate cleanup function to ensure consistent cleanup
+  const cleanup = async () => {
+    try {
+      // Clear all queries
+      await queryClient.invalidateQueries();
+      await queryClient.resetQueries();
+      
+      // Clear local storage
+      localStorage.clear();
+      
+      // Show toast and redirect
       toast({
-        title: "Logout failed",
-        description: error.message || "Failed to log out",
-        variant: "destructive",
+        title: "Session ended",
+        description: "Please sign in again",
       });
+      
+      // Navigate to login
+      navigate('/login');
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      // Force navigation to login as last resort
+      window.location.href = '/login';
     }
   };
 
