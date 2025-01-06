@@ -78,17 +78,14 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
       
       if (error) throw error;
 
-      if (responseData && typeof responseData === 'object' && 'message' in responseData) {
-        toast({
-          title: "Fix Applied",
-          description: String(responseData.message) || `Successfully resolved ${checkType} issue`,
-        });
-      } else {
-        toast({
-          title: "Fix Applied",
-          description: `Successfully resolved ${checkType} issue`,
-        });
-      }
+      const message = typeof responseData === 'object' && responseData !== null && 'message' in responseData
+        ? String(responseData.message)
+        : `Successfully resolved ${checkType} issue`;
+
+      toast({
+        title: "Fix Applied",
+        description: message,
+      });
     } catch (error: any) {
       console.error('Fix error:', error);
       toast({
