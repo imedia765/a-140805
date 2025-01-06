@@ -73,16 +73,28 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data, error } = await supabase.rpc<FixResponse, FixRequestParams>(functionName, { 
+      const { data, error } = await supabase.rpc(functionName, { 
         issue_details: details 
       });
       
       if (error) throw error;
+
+      // Type guard to check if data matches FixResponse shape
+      const isFixResponse = (response: any): response is FixResponse => {
+        return response && typeof response.success === 'boolean' && typeof response.message === 'string';
+      };
       
-      toast({
-        title: "Fix Applied",
-        description: data?.message || `Successfully resolved ${checkType} issue`,
-      });
+      if (isFixResponse(data)) {
+        toast({
+          title: "Fix Applied",
+          description: data.message || `Successfully resolved ${checkType} issue`,
+        });
+      } else {
+        toast({
+          title: "Fix Applied",
+          description: `Successfully resolved ${checkType} issue`,
+        });
+      }
     } catch (error: any) {
       console.error('Fix error:', error);
       toast({
