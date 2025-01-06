@@ -17,19 +17,20 @@ interface SystemCheckResultsProps {
   checks: SystemCheck[];
 }
 
+// Update to match actual available RPC functions
 type FixFunction = 
-  | "fix_multiple_roles"
-  | "assign_collector_role"
-  | "fix_security_settings";
+  | "perform_user_roles_sync"
+  | "validate_user_roles"
+  | "audit_security_settings";
 
 const getFixFunction = (checkType: string): FixFunction | null => {
   switch (checkType) {
     case 'Multiple Roles Assigned':
-      return "fix_multiple_roles";
+      return "perform_user_roles_sync";
     case 'Collectors Without Role':
-      return "assign_collector_role";
+      return "validate_user_roles";
     case 'Security Settings':
-      return "fix_security_settings";
+      return "audit_security_settings";
     default:
       return null;
   }
@@ -75,7 +76,7 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
       
       toast({
         title: "Fix Applied",
-        description: data || `Successfully resolved ${checkType} issue`,
+        description: typeof data === 'string' ? data : `Successfully resolved ${checkType} issue`,
       });
     } catch (error: any) {
       console.error('Fix error:', error);
