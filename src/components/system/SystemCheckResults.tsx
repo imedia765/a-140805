@@ -16,10 +16,24 @@ interface SystemCheckResultsProps {
 type DatabaseFunctions = Database['public']['Functions'];
 type FunctionName = keyof DatabaseFunctions;
 
-type RPCParams = {
-  issue_details?: Record<string, any>;
-  [key: string]: any;
-}
+type AssignCollectorParams = {
+  member_id: string;
+  collector_name: string;
+  collector_prefix: string;
+  collector_number: string;
+};
+
+type ValidateUserRolesParams = Record<PropertyKey, never>;
+
+type AuditSecurityParams = Record<PropertyKey, never>;
+
+type CheckMemberNumbersParams = Record<PropertyKey, never>;
+
+type RPCFunctionParams = 
+  | AssignCollectorParams
+  | ValidateUserRolesParams
+  | AuditSecurityParams
+  | CheckMemberNumbersParams;
 
 const getFixFunction = (checkType: string): FunctionName | null => {
   switch (checkType) {
@@ -33,6 +47,24 @@ const getFixFunction = (checkType: string): FunctionName | null => {
       return "check_member_numbers";
     default:
       return null;
+  }
+};
+
+const getFixParams = (functionName: FunctionName, details: any): RPCFunctionParams => {
+  switch (functionName) {
+    case 'assign_collector_role':
+      return {
+        member_id: details.member_id,
+        collector_name: details.collector_name,
+        collector_prefix: details.prefix,
+        collector_number: details.number
+      };
+    case 'validate_user_roles':
+    case 'audit_security_settings':
+    case 'check_member_numbers':
+      return {};
+    default:
+      return {};
   }
 };
 
@@ -68,10 +100,7 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const params: RPCParams = {
-        issue_details: details
-      };
-
+      const params = getFixParams(functionName, details);
       const { data: responseData, error } = await supabase.rpc(functionName, params);
       
       if (error) throw error;
