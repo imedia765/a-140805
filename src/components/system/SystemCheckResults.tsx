@@ -7,6 +7,7 @@ import { getStatusColor, getStatusIcon } from "./utils/systemCheckUtils";
 import { SystemCheckDetailsTable } from "./SystemCheckDetailsTable";
 import { SystemCheckActionButton } from "./SystemCheckActionButton";
 import { SystemCheck } from "@/types/system";
+import { Database } from "@/integrations/supabase/types";
 
 interface SystemCheckResultsProps {
   checks: SystemCheck[];
@@ -72,16 +73,17 @@ const SystemCheckResults = ({ checks }: SystemCheckResultsProps) => {
     }
 
     try {
-      const { data: responseData, error } = await supabase.rpc<FixResponse>(functionName, { 
-        issue_details: details 
-      });
+      const { data: responseData, error } = await supabase.rpc<FixResponse, FixRequestParams>(
+        functionName, 
+        { issue_details: details }
+      );
       
       if (error) throw error;
 
-      if (responseData && 'success' in responseData && 'message' in responseData) {
+      if (responseData && typeof responseData === 'object' && 'message' in responseData) {
         toast({
           title: "Fix Applied",
-          description: responseData.message || `Successfully resolved ${checkType} issue`,
+          description: String(responseData.message) || `Successfully resolved ${checkType} issue`,
         });
       } else {
         toast({
