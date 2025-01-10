@@ -458,6 +458,16 @@ export type Database = {
           details: Json
         }[]
       }
+      check_api_health: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          metric_name: string
+          current_value: number
+          threshold: number
+          status: string
+          details: Json
+        }[]
+      }
       check_auth_flow: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -482,6 +492,16 @@ export type Database = {
           details: Json
         }[]
       }
+      check_error_rates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          metric_name: string
+          current_value: number
+          threshold: number
+          status: string
+          details: Json
+        }[]
+      }
       check_member_numbers: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -500,7 +520,27 @@ export type Database = {
           details: Json
         }[]
       }
+      check_resource_usage: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          metric_name: string
+          current_value: number
+          threshold: number
+          status: string
+          details: Json
+        }[]
+      }
       check_system_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          metric_name: string
+          current_value: number
+          threshold: number
+          status: string
+          details: Json
+        }[]
+      }
+      check_user_activity: {
         Args: Record<PropertyKey, never>
         Returns: {
           metric_name: string

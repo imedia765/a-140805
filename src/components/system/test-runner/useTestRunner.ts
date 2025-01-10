@@ -18,8 +18,12 @@ export const useTestRunner = () => {
     try {
       const testFunctions = [
         { name: 'System Performance', fn: 'check_system_performance', type: 'performance' },
+        { name: 'Error Rates', fn: 'check_error_rates', type: 'monitoring' },
+        { name: 'Resource Usage', fn: 'check_resource_usage', type: 'monitoring' },
+        { name: 'API Health', fn: 'check_api_health', type: 'monitoring' },
+        { name: 'User Activity', fn: 'check_user_activity', type: 'security' },
         { name: 'Security Audit', fn: 'audit_security_settings', type: 'security' },
-        { name: 'Configuration Check', fn: 'validate_user_roles', type: 'configuration' },
+        { name: 'Configuration Check', fn: 'validate_user_roles', type: 'system' },
         { name: 'Member Numbers', fn: 'check_member_numbers', type: 'system' },
         { name: 'Authentication Flow', fn: 'check_auth_flow', type: 'security' },
         { name: 'Critical Code Logic', fn: 'check_critical_logic', type: 'system' },
