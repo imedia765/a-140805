@@ -12,73 +12,36 @@ export const useTestRunner = () => {
 
   const runAllTests = async () => {
     setIsRunning(true);
-    setTestLogs(prev => [...prev, '🚀 Starting all tests...']);
+    setTestLogs(prev => [...prev, '🚀 Starting combined system checks...']);
     setProgress(0);
     
     try {
-      const testFunctions = [
-        { name: 'System Performance', fn: 'check_system_performance', type: 'performance' },
-        { name: 'Error Rates', fn: 'check_error_rates', type: 'monitoring' },
-        { name: 'Resource Usage', fn: 'check_resource_usage', type: 'monitoring' },
-        { name: 'API Health', fn: 'check_api_health', type: 'monitoring' },
-        { name: 'User Activity', fn: 'check_user_activity', type: 'security' },
-        { name: 'Security Audit', fn: 'audit_security_settings', type: 'security' },
-        { name: 'Configuration Check', fn: 'validate_user_roles', type: 'system' },
-        { name: 'Member Numbers', fn: 'check_member_numbers', type: 'system' },
-        { name: 'Authentication Flow', fn: 'check_auth_flow', type: 'security' },
-        { name: 'Critical Code Logic', fn: 'check_critical_logic', type: 'system' },
-        { name: 'Role-Based Access', fn: 'check_rbac', type: 'security' },
-        { name: 'Data Integrity', fn: 'check_data_integrity', type: 'system' }
-      ] as const;
+      const { data, error } = await supabase.rpc('run_combined_system_checks');
 
-      const results = [];
-      let completedTests = 0;
-
-      for (const test of testFunctions) {
-        setCurrentTest(`Running ${test.name}...`);
-        setTestLogs(prev => [...prev, `📋 Starting ${test.name} test...`]);
-        console.log(`Executing test: ${test.name}`);
-
-        try {
-          const { data, error } = await supabase.rpc(test.fn);
-
-          if (error) {
-            console.error(`Test error for ${test.name}:`, error);
-            throw new Error(`${test.name} failed: ${error.message}`);
-          }
-
-          console.log(`Test results for ${test.name}:`, data);
-
-          // Handle the response based on the test type
-          const processedData = Array.isArray(data) ? data : [data];
-          const formattedResults = processedData.map(item => ({
-            ...item,
-            test_name: test.name,
-            test_type: test.type
-          }));
-
-          results.push(...formattedResults);
-          
-          completedTests++;
-          setProgress((completedTests / testFunctions.length) * 100);
-          setTestLogs(prev => [...prev, `✅ ${test.name} completed`]);
-        } catch (testError: any) {
-          console.error(`Test error for ${test.name}:`, testError);
-          setTestLogs(prev => [...prev, `❌ ${test.name} failed: ${testError.message}`]);
-          throw new Error(`${test.name} failed: ${testError.message}`);
-        }
+      if (error) {
+        console.error('Test run error:', error);
+        throw new Error(`Failed to run system checks: ${error.message}`);
       }
 
-      setTestResults(results);
+      console.log('Combined system checks results:', data);
+
+      // Process and categorize results
+      const processedResults = data.map((result: any) => ({
+        ...result,
+        test_name: result.metric_name || result.check_type,
+        test_type: result.test_category
+      }));
+
+      setTestResults(processedResults);
       setProgress(100);
-      setCurrentTest('All tests complete');
-      toast.success('All tests completed successfully');
+      setCurrentTest('All checks complete');
+      toast.success('System checks completed successfully');
       
-      return results;
+      return processedResults;
     } catch (error: any) {
-      console.error('Test run error:', error);
-      setTestLogs(prev => [...prev, `❌ Error running tests: ${error.message}`]);
-      toast.error("Test run failed");
+      console.error('System checks error:', error);
+      setTestLogs(prev => [...prev, `❌ Error running checks: ${error.message}`]);
+      toast.error("System checks failed");
       throw error;
     } finally {
       setIsRunning(false);

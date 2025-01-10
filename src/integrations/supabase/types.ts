@@ -598,6 +598,18 @@ export type Database = {
         }
         Returns: string
       }
+      run_combined_system_checks: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          metric_name: string
+          current_value: number
+          threshold: number
+          status: string
+          details: Json
+          test_category: string
+        }[]
+      }
       update_collector_profiles: {
         Args: Record<PropertyKey, never>
         Returns: undefined

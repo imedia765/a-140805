@@ -6,13 +6,25 @@ import { supabase } from "@/integrations/supabase/client";
 import SystemHealthCheck from './system/SystemHealthCheck';
 import RoleManagementCard from './system/RoleManagementCard';
 import GitOperationsCard from './system/GitOperationsCard';
-import TestRunner from './system/TestRunner';
 import { Card } from './ui/card';
+import { useTestRunner } from './system/test-runner/useTestRunner';
+import TestHeader from './system/test-runner/TestHeader';
+import TestProgress from './system/test-runner/TestProgress';
+import TestResults from './system/test-runner/TestResults';
+import TestLogs from './system/test-runner/TestLogs';
 
 const SystemToolsView = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const {
+    testLogs,
+    isRunning,
+    progress,
+    currentTest,
+    testResults,
+    runTestsMutation
+  } = useTestRunner();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -52,9 +64,27 @@ const SystemToolsView = () => {
 
       <div className="grid gap-6">
         <SystemHealthCheck />
+        
         <Card className="dashboard-card">
-          <TestRunner />
+          <div className="p-6 space-y-6">
+            <TestHeader 
+              isRunning={isRunning}
+              onRunTests={() => runTestsMutation.mutate()}
+            />
+
+            <TestProgress 
+              isRunning={isRunning}
+              currentTest={currentTest}
+              progress={progress}
+              error={runTestsMutation.error}
+            />
+
+            <TestResults results={testResults} />
+            
+            <TestLogs logs={testLogs} />
+          </div>
         </Card>
+
         <GitOperationsCard />
         <RoleManagementCard />
       </div>
