@@ -39,24 +39,34 @@ export const useTestRunner = () => {
         setTestLogs(prev => [...prev, `📋 Starting ${test.name} test...`]);
         console.log(`Executing test: ${test.name}`);
 
-        const { data, error } = await supabase.rpc(test.fn);
+        try {
+          const { data, error } = await supabase.rpc(test.fn);
 
-        if (error) {
-          console.error(`Test error for ${test.name}:`, error);
-          throw new Error(`${test.name} failed: ${error.message}`);
+          if (error) {
+            console.error(`Test error for ${test.name}:`, error);
+            throw new Error(`${test.name} failed: ${error.message}`);
+          }
+
+          console.log(`Test results for ${test.name}:`, data);
+
+          // Handle the response based on the test type
+          const processedData = Array.isArray(data) ? data : [data];
+          const formattedResults = processedData.map(item => ({
+            ...item,
+            test_name: test.name,
+            test_type: test.type
+          }));
+
+          results.push(...formattedResults);
+          
+          completedTests++;
+          setProgress((completedTests / testFunctions.length) * 100);
+          setTestLogs(prev => [...prev, `✅ ${test.name} completed`]);
+        } catch (testError: any) {
+          console.error(`Test error for ${test.name}:`, testError);
+          setTestLogs(prev => [...prev, `❌ ${test.name} failed: ${testError.message}`]);
+          throw new Error(`${test.name} failed: ${testError.message}`);
         }
-
-        console.log(`Test results for ${test.name}:`, data);
-
-        const processedData = Array.isArray(data) ? data : [data];
-        results.push(...processedData.map(item => ({
-          ...item,
-          test_type: test.type
-        })));
-        
-        completedTests++;
-        setProgress((completedTests / testFunctions.length) * 100);
-        setTestLogs(prev => [...prev, `✅ ${test.name} completed`]);
       }
 
       setTestResults(results);
