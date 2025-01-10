@@ -47,6 +47,26 @@ const TestRunner = () => {
           name: 'Member Numbers', 
           fn: 'check_member_numbers',
           type: 'system'
+        },
+        {
+          name: 'Authentication Flow',
+          fn: 'check_auth_flow',
+          type: 'security'
+        },
+        {
+          name: 'Critical Code Logic',
+          fn: 'check_critical_logic',
+          type: 'system'
+        },
+        {
+          name: 'Role-Based Access',
+          fn: 'check_rbac',
+          type: 'security'
+        },
+        {
+          name: 'Data Integrity',
+          fn: 'check_data_integrity',
+          type: 'system'
         }
       ] as const;
 
@@ -56,16 +76,16 @@ const TestRunner = () => {
       for (const test of testFunctions) {
         setCurrentTest(`Running ${test.name}...`);
         setTestLogs(prev => [...prev, `📋 Starting ${test.name} test...`]);
-        console.log(`Executing test: ${test.name}`); // Debug log
+        console.log(`Executing test: ${test.name}`);
 
         const { data, error } = await supabase.rpc(test.fn);
 
         if (error) {
-          console.error(`Test error for ${test.name}:`, error); // Debug log
+          console.error(`Test error for ${test.name}:`, error);
           throw new Error(`${test.name} failed: ${error.message}`);
         }
 
-        console.log(`Test results for ${test.name}:`, data); // Debug log
+        console.log(`Test results for ${test.name}:`, data);
 
         const processedData = Array.isArray(data) ? data : [data];
         results.push(...processedData.map(item => ({
@@ -78,7 +98,7 @@ const TestRunner = () => {
         setTestLogs(prev => [...prev, `✅ ${test.name} completed`]);
       }
 
-      console.log('All test results:', results); // Debug log
+      console.log('All test results:', results);
       setTestResults(results);
       setProgress(100);
       setCurrentTest('All tests complete');
