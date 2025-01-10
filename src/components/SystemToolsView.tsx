@@ -8,20 +8,11 @@ import RoleManagementCard from './system/RoleManagementCard';
 import GitOperationsCard from './system/GitOperationsCard';
 import TestRunner from './system/TestRunner';
 import { Card } from './ui/card';
-import LogsHeader from './logs/LogsHeader';
-import { LogsTabs } from './logs/LogsTabs';
-import { AuditLogsList } from './logs/AuditLogsList';
-import MonitoringLogsList from './logs/MonitoringLogsList';
-import { DebugConsole } from './logs/DebugConsole';
-import { LOGS_TABS, LogsTabsType } from '@/constants/logs';
-import { useState } from 'react';
 
 const SystemToolsView = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<LogsTabsType>(LOGS_TABS.AUDIT);
-  const [debugLogs] = useState(['Debug logging initialized', 'Real-time subscriptions active']);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,32 +52,11 @@ const SystemToolsView = () => {
 
       <div className="grid gap-6">
         <SystemHealthCheck />
-        <TestRunner />
+        <Card className="dashboard-card">
+          <TestRunner />
+        </Card>
         <GitOperationsCard />
         <RoleManagementCard />
-        
-        <Card className="dashboard-card">
-          <LogsHeader 
-            title="System Logs"
-            subtitle="View and manage system audit and monitoring logs"
-          />
-          
-          <div className="mt-6">
-            <LogsTabs
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-
-            <div className="mt-4">
-              {activeTab === LOGS_TABS.AUDIT && <AuditLogsList />}
-              {activeTab === LOGS_TABS.MONITORING && <MonitoringLogsList />}
-            </div>
-            
-            <div className="mt-6">
-              <DebugConsole logs={debugLogs} />
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );
