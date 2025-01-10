@@ -2,12 +2,8 @@ import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import ProtectedRoutes from "@/components/routing/ProtectedRoutes";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Create a client
-const queryClient = new QueryClient();
-
-function AppContent() {
+function App() {
   const { session, loading } = useAuthSession();
 
   if (loading) {
@@ -23,14 +19,6 @@ function AppContent() {
       <ProtectedRoutes session={session} />
       <Toaster />
     </>
-  );
-}
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
   );
 }
 
