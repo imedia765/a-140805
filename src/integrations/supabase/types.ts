@@ -458,6 +458,30 @@ export type Database = {
           details: Json
         }[]
       }
+      check_auth_flow: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          status: string
+          details: Json
+        }[]
+      }
+      check_critical_logic: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          status: string
+          details: Json
+        }[]
+      }
+      check_data_integrity: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          status: string
+          details: Json
+        }[]
+      }
       check_member_numbers: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -465,6 +489,14 @@ export type Database = {
           description: string
           affected_table: string
           member_number: string
+          details: Json
+        }[]
+      }
+      check_rbac: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          status: string
           details: Json
         }[]
       }
