@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import { Session } from "@supabase/supabase-js";
@@ -11,7 +11,6 @@ interface ProtectedRoutesProps {
 }
 
 const AuthWrapper = ({ session }: { session: Session | null }) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = window.innerWidth <= 768;
 
@@ -24,25 +23,17 @@ const AuthWrapper = ({ session }: { session: Session | null }) => {
       
       if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
         console.log('User signed out or token refresh failed, redirecting to login');
-        if (isMobile) {
-          window.location.href = '/login';
-        } else {
-          navigate('/login', { replace: true });
-        }
+        window.location.href = '/login';
       } else if (event === 'SIGNED_IN' && currentSession) {
         console.log('User signed in, redirecting to home');
-        if (isMobile) {
-          window.location.href = '/';
-        } else {
-          navigate('/', { replace: true });
-        }
+        window.location.href = '/';
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [toast, isMobile]);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {

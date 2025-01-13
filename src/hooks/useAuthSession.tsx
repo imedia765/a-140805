@@ -30,8 +30,6 @@ export function useAuthSession() {
       console.log('Sign out successful');
       setSession(null);
       
-      // Ensure state is cleared before redirect
-      await new Promise(resolve => setTimeout(resolve, 100));
       window.location.href = '/login';
       
     } catch (error: any) {
@@ -54,7 +52,7 @@ export function useAuthSession() {
     if (error.message.includes('refresh_token_not_found') || 
         error.message.includes('invalid refresh token')) {
       console.log('Token refresh failed, signing out...');
-      await handleSignOut();
+      await handleSignOut(true);
       
       toast({
         title: "Session Expired",
@@ -92,6 +90,9 @@ export function useAuthSession() {
           setSession(currentSession);
           if (currentSession?.user) {
             console.log('Session initialized for user:', currentSession.user.id);
+            if (window.location.pathname === '/login') {
+              window.location.href = '/';
+            }
           } else {
             console.log('No active session found');
             if (window.location.pathname !== '/login') {
@@ -102,7 +103,7 @@ export function useAuthSession() {
       } catch (error: any) {
         console.error('Session initialization error:', error);
         if (mounted) {
-          await handleSignOut();
+          await handleSignOut(true);
         }
       } finally {
         if (mounted) {
