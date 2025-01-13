@@ -71,7 +71,7 @@ export function useAuthSession() {
 
   useEffect(() => {
     let mounted = true;
-    let authSubscription: { subscription: { unsubscribe: () => void } } | null = null;
+    let authSubscription: { data: { subscription: { unsubscribe: () => void } } };
 
     console.log('Initializing auth session...');
     
@@ -112,35 +112,35 @@ export function useAuthSession() {
     };
 
     const setupAuthListener = () => {
-      authSubscription = {
-        subscription: supabase.auth.onAuthStateChange(async (event, currentSession) => {
-          if (!mounted) return;
+      const { data } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+        if (!mounted) return;
 
-          console.log('Auth state changed:', {
-            event,
-            hasSession: !!currentSession,
-            userId: currentSession?.user?.id,
-            platform: window.innerWidth <= 768 ? 'mobile' : 'desktop'
-          });
-          
-          if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
-            console.log('User signed out or token refresh failed');
-            await handleSignOut();
-            return;
-          }
+        console.log('Auth state changed:', {
+          event,
+          hasSession: !!currentSession,
+          userId: currentSession?.user?.id,
+          platform: window.innerWidth <= 768 ? 'mobile' : 'desktop'
+        });
+        
+        if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
+          console.log('User signed out or token refresh failed');
+          await handleSignOut();
+          return;
+        }
 
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            setSession(currentSession);
-            await queryClient.invalidateQueries();
-            
-            if (window.location.pathname === '/login') {
-              window.location.href = '/';
-            }
-          }
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(currentSession);
+          await queryClient.invalidateQueries();
           
-          setLoading(false);
-        })
-      };
+          if (window.location.pathname === '/login') {
+            window.location.href = '/';
+          }
+        }
+        
+        setLoading(false);
+      });
+      
+      authSubscription = data;
     };
 
     initializeSession();
@@ -148,8 +148,8 @@ export function useAuthSession() {
 
     return () => {
       mounted = false;
-      if (authSubscription?.subscription) {
-        authSubscription.subscription.unsubscribe();
+      if (authSubscription?.data?.subscription) {
+        authSubscription.data.subscription.unsubscribe();
       }
     };
   }, [queryClient, toast]);
