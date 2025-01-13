@@ -9,6 +9,7 @@ export function useAuthSession() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = window.innerWidth <= 768;
 
   const handleSignOut = async (skipStorageClear = false) => {
     try {
@@ -93,8 +94,7 @@ export function useAuthSession() {
             console.log('Session initialized for user:', currentSession.user.id);
           } else {
             console.log('No active session found');
-            const currentPath = window.location.pathname;
-            if (currentPath !== '/login') {
+            if (window.location.pathname !== '/login') {
               window.location.href = '/login';
             }
           }
@@ -119,12 +119,12 @@ export function useAuthSession() {
           event,
           hasSession: !!currentSession,
           userId: currentSession?.user?.id,
-          platform: window.innerWidth <= 768 ? 'mobile' : 'desktop'
+          platform: isMobile ? 'mobile' : 'desktop'
         });
         
         if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
           console.log('User signed out or token refresh failed');
-          await handleSignOut();
+          window.location.href = '/login';
           return;
         }
 
@@ -152,7 +152,7 @@ export function useAuthSession() {
         authSubscription.data.subscription.unsubscribe();
       }
     };
-  }, [queryClient, toast]);
+  }, [queryClient, toast, isMobile]);
 
   return { session, loading, handleSignOut };
 }
