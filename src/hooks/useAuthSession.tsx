@@ -70,7 +70,6 @@ export function useAuthSession() {
 
   useEffect(() => {
     let mounted = true;
-    let authSubscription: { data: { subscription: { unsubscribe: () => void } } };
 
     console.log('Initializing auth session...');
     
@@ -87,6 +86,7 @@ export function useAuthSession() {
         }
         
         if (mounted) {
+          console.log('Setting session state:', currentSession?.user?.id);
           setSession(currentSession);
           if (currentSession?.user) {
             console.log('Session initialized for user:', currentSession.user.id);
@@ -113,7 +113,7 @@ export function useAuthSession() {
     };
 
     const setupAuthListener = () => {
-      const { data } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      const { data: authSubscription } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
         if (!mounted) return;
 
         console.log('Auth state changed:', {
@@ -130,27 +130,29 @@ export function useAuthSession() {
         }
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('User signed in, updating session');
           setSession(currentSession);
           await queryClient.invalidateQueries();
           
           if (window.location.pathname === '/login') {
+            console.log('Redirecting to home after sign in');
             window.location.href = '/';
           }
         }
         
         setLoading(false);
       });
-      
-      authSubscription = data;
+
+      return authSubscription;
     };
 
+    const authSubscription = setupAuthListener();
     initializeSession();
-    setupAuthListener();
 
     return () => {
       mounted = false;
-      if (authSubscription?.data?.subscription) {
-        authSubscription.data.subscription.unsubscribe();
+      if (authSubscription) {
+        authSubscription.subscription.unsubscribe();
       }
     };
   }, [queryClient, toast, isMobile]);
