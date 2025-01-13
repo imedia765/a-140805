@@ -1,93 +1,47 @@
-import { useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
-import SystemHealthCheck from './system/SystemHealthCheck';
-import RoleManagementCard from './system/RoleManagementCard';
-import GitOperationsCard from './system/GitOperationsCard';
-import { Card } from './ui/card';
-import { useTestRunner } from './system/test-runner/useTestRunner';
-import TestHeader from './system/test-runner/TestHeader';
-import TestProgress from './system/test-runner/TestProgress';
-import TestResults from './system/test-runner/TestResults';
-import TestLogs from './system/test-runner/TestLogs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SystemHealthCheck from "./system/SystemHealthCheck";
+import GitOperationsCard from "./system/GitOperationsCard";
+import RoleManagementCard from "./system/RoleManagementCard";
+import UserManual from "./documentation/UserManual";
+import AnnouncementsManager from "./system/AnnouncementsManager";
 
 const SystemToolsView = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const {
-    testLogs,
-    isRunning,
-    progress,
-    currentTest,
-    testResults,
-    runTestsMutation
-  } = useTestRunner();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session) {
-          console.error('Auth error:', error);
-          toast({
-            title: "Authentication Error",
-            description: "Please sign in again",
-            variant: "destructive",
-          });
-          navigate('/login');
-          return;
-        }
-        queryClient.invalidateQueries({ queryKey: ['security_audit'] });
-        queryClient.invalidateQueries({ queryKey: ['member_number_check'] });
-      } catch (error) {
-        console.error('Session check error:', error);
-        toast({
-          title: "Session Error",
-          description: "Please sign in again",
-          variant: "destructive",
-        });
-        navigate('/login');
-      }
-    };
-    checkAuth();
-  }, [queryClient, toast, navigate]);
-
   return (
     <div className="space-y-8">
       <header>
         <h1 className="text-3xl font-medium mb-2 text-white">System Tools</h1>
-        <p className="text-dashboard-muted">Manage and monitor system health</p>
+        <p className="text-dashboard-muted">Manage system settings and monitor performance</p>
       </header>
 
-      <div className="grid gap-6">
-        <SystemHealthCheck />
-        
-        <Card className="dashboard-card">
-          <div className="p-6 space-y-6">
-            <TestHeader 
-              isRunning={isRunning}
-              onRunTests={() => runTestsMutation.mutate()}
-            />
+      <Tabs defaultValue="health" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="health">System Health</TabsTrigger>
+          <TabsTrigger value="git">Git Operations</TabsTrigger>
+          <TabsTrigger value="roles">Role Management</TabsTrigger>
+          <TabsTrigger value="manual">User Manual</TabsTrigger>
+          <TabsTrigger value="announcements">Announcements</TabsTrigger>
+        </TabsList>
 
-            <TestProgress 
-              isRunning={isRunning}
-              currentTest={currentTest}
-              progress={progress}
-              error={runTestsMutation.error}
-            />
+        <TabsContent value="health" className="space-y-4">
+          <SystemHealthCheck />
+        </TabsContent>
 
-            <TestResults results={testResults} />
-            
-            <TestLogs logs={testLogs} />
-          </div>
-        </Card>
+        <TabsContent value="git" className="space-y-4">
+          <GitOperationsCard />
+        </TabsContent>
 
-        <GitOperationsCard />
-        <RoleManagementCard />
-      </div>
+        <TabsContent value="roles" className="space-y-4">
+          <RoleManagementCard />
+        </TabsContent>
+
+        <TabsContent value="manual" className="space-y-4">
+          <UserManual />
+        </TabsContent>
+
+        <TabsContent value="announcements" className="space-y-4">
+          <AnnouncementsManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

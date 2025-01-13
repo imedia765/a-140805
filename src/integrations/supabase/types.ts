@@ -90,7 +90,129 @@ export type Database = {
         }
         Relationships: []
       }
-      git_operations_logs: {
+      documentation: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_path: string
+          id: string
+          is_current: boolean | null
+          metadata: Json | null
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_path: string
+          id?: string
+          is_current?: boolean | null
+          metadata?: Json | null
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string
+          id?: string
+          is_current?: boolean | null
+          metadata?: Json | null
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          family_member_number: string
+          full_name: string
+          gender: string | null
+          id: string
+          member_id: string
+          relationship: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          family_member_number: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          member_id: string
+          relationship: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          family_member_number?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          member_id?: string
+          relationship?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      git_repositories: {
+        Row: {
+          branch: string
+          created_at: string | null
+          created_by: string | null
+          custom_url: string | null
+          id: string
+          is_master: boolean
+          last_sync_at: string | null
+          name: string
+          source_url: string
+          status: string | null
+          target_url: string | null
+        }
+        Insert: {
+          branch?: string
+          created_at?: string | null
+          created_by?: string | null
+          custom_url?: string | null
+          id?: string
+          is_master?: boolean
+          last_sync_at?: string | null
+          name: string
+          source_url: string
+          status?: string | null
+          target_url?: string | null
+        }
+        Update: {
+          branch?: string
+          created_at?: string | null
+          created_by?: string | null
+          custom_url?: string | null
+          id?: string
+          is_master?: boolean
+          last_sync_at?: string | null
+          name?: string
+          source_url?: string
+          status?: string | null
+          target_url?: string | null
+        }
+        Relationships: []
+      }
+      git_sync_logs: {
         Row: {
           created_at: string | null
           created_by: string | null
@@ -98,6 +220,7 @@ export type Database = {
           id: string
           message: string | null
           operation_type: string
+          repository_id: string | null
           status: string
         }
         Insert: {
@@ -107,6 +230,7 @@ export type Database = {
           id?: string
           message?: string | null
           operation_type: string
+          repository_id?: string | null
           status: string
         }
         Update: {
@@ -116,36 +240,18 @@ export type Database = {
           id?: string
           message?: string | null
           operation_type?: string
+          repository_id?: string | null
           status?: string
         }
-        Relationships: []
-      }
-      git_repository_configs: {
-        Row: {
-          branch: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          is_active: boolean | null
-          repo_url: string
-        }
-        Insert: {
-          branch?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
-          repo_url: string
-        }
-        Update: {
-          branch?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
-          repo_url?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "git_sync_logs_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "git_repositories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       members: {
         Row: {
@@ -360,6 +466,7 @@ export type Database = {
           member_number: string
           notes: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number: string | null
           payment_type: string
           status: string | null
         }
@@ -374,6 +481,7 @@ export type Database = {
           member_number: string
           notes?: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string | null
           payment_type: string
           status?: string | null
         }
@@ -388,6 +496,7 @@ export type Database = {
           member_number?: string
           notes?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string | null
           payment_type?: string
           status?: string | null
         }
@@ -414,6 +523,42 @@ export type Database = {
             referencedColumns: ["member_number"]
           },
         ]
+      }
+      system_announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          priority: number | null
+          severity: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          priority?: number | null
+          severity?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          priority?: number | null
+          severity?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -550,9 +695,28 @@ export type Database = {
           details: Json
         }[]
       }
+      generate_family_member_number: {
+        Args: {
+          p_parent_member_number: string
+          p_relationship: string
+        }
+        Returns: string
+      }
       generate_full_backup: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      generate_payment_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_audit_activity_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          hour_bucket: string
+          operation: string
+          count: number
+        }[]
       }
       get_rls_policies: {
         Args: Record<PropertyKey, never>
@@ -560,6 +724,15 @@ export type Database = {
           table_name: string
           name: string
           command: string
+        }[]
+      }
+      get_system_metrics_history: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          recorded_at: string
+          metric_name: string
+          metric_value: number
+          category: string
         }[]
       }
       get_tables_info: {
