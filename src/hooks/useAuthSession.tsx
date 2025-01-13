@@ -4,12 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 
-export function useAuthSession() {
+export const useAuthSession = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isMobile = window.innerWidth <= 768;
 
   const handleSignOut = async (skipStorageClear = false) => {
     try {
@@ -70,43 +69,31 @@ export function useAuthSession() {
 
   useEffect(() => {
     let mounted = true;
-    let authSubscription: { subscription: { unsubscribe: () => void } } | null = null;
+    let authSubscription: { data: { subscription: { unsubscribe: () => void } } } | null = null;
 
     console.log('Initializing auth session...');
     
     const initializeSession = async () => {
       try {
-        setLoading(true);
-        console.log('Fetching current session...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Session fetch error:', error);
-          await handleAuthError(error);
+          console.error('Error getting session:', error);
+          handleAuthError(error);
           return;
         }
-        
+
         if (mounted) {
-          console.log('Setting session state:', currentSession?.user?.id);
+          console.log('Session initialized:', {
+            hasSession: !!currentSession,
+            userId: currentSession?.user?.id
+          });
+          
           setSession(currentSession);
-          if (currentSession?.user) {
-            console.log('Session initialized for user:', currentSession.user.id);
-            if (window.location.pathname === '/login') {
-              window.location.href = '/';
-            }
-          } else {
-            console.log('No active session found');
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login';
-            }
-          }
+          setLoading(false);
         }
-      } catch (error: any) {
-        console.error('Session initialization error:', error);
-        if (mounted) {
-          await handleSignOut(true);
-        }
-      } finally {
+      } catch (error) {
+        console.error('Unexpected error during session initialization:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -114,37 +101,29 @@ export function useAuthSession() {
     };
 
     const setupAuthListener = () => {
-      authSubscription = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      const { data } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
         if (!mounted) return;
 
         console.log('Auth state changed:', {
           event,
           hasSession: !!currentSession,
-          userId: currentSession?.user?.id,
-          platform: isMobile ? 'mobile' : 'desktop'
+          userId: currentSession?.user?.id
         });
-        
-        if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
-          console.log('User signed out or token refresh failed');
-          window.location.href = '/login';
-          return;
-        }
 
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          console.log('User signed in, updating session');
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          queryClient.clear();
+          window.location.href = '/';
+        } else if (event === 'SIGNED_IN') {
           setSession(currentSession);
-          await queryClient.invalidateQueries();
-          
-          if (window.location.pathname === '/login') {
-            console.log('Redirecting to home after sign in');
-            window.location.href = '/';
-          }
+          window.location.href = '/';
+        } else {
+          setSession(currentSession);
         }
-        
-        setLoading(false);
       });
 
-      return authSubscription;
+      authSubscription = data;
+      return data;
     };
 
     setupAuthListener();
@@ -152,11 +131,15 @@ export function useAuthSession() {
 
     return () => {
       mounted = false;
-      if (authSubscription) {
+      if (authSubscription?.subscription) {
         authSubscription.subscription.unsubscribe();
       }
     };
-  }, [queryClient, toast, isMobile]);
+  }, [queryClient, toast]);
 
-  return { session, loading, handleSignOut };
-}
+  return {
+    session,
+    loading,
+    handleSignOut
+  };
+};

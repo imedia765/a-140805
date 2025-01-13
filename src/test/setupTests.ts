@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom';
-import { cleanup } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { expect, afterEach, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', {
   url: 'http://localhost:3000',
@@ -9,12 +11,14 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
   resources: 'usable'
 });
 
-global.window = dom.window;
+// Correctly type the window object
+global.window = dom.window as unknown as Window & typeof globalThis;
 global.document = dom.window.document;
 global.navigator = {
   userAgent: 'node.js',
 } as Navigator;
 
+// Mock localStorage
 global.localStorage = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -24,6 +28,7 @@ global.localStorage = {
   key: vi.fn(),
 };
 
+// Mock window.matchMedia
 global.window.matchMedia = vi.fn().mockImplementation(query => ({
   matches: false,
   media: query,
@@ -35,25 +40,24 @@ global.window.matchMedia = vi.fn().mockImplementation(query => ({
   dispatchEvent: vi.fn(),
 }));
 
-class MockIntersectionObserver {
-  constructor() {
-    // Constructor implementation
-  }
-  
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-  takeRecords() { return []; }
-  
-  root = null;
-  rootMargin = "0px";
-  thresholds = [0];
-}
+// Create a wrapper with providers for testing
+export const renderWithProviders = (ui: ReactNode) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
 
-global.IntersectionObserver = MockIntersectionObserver;
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>
+  );
+};
 
-global.window.scrollTo = vi.fn();
-
+// Cleanup after each test case
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
