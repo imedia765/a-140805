@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Session, AuthError } from "@supabase/supabase-js";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
@@ -46,7 +46,7 @@ export function useAuthSession() {
     }
   };
 
-  const handleAuthError = async (error: AuthError) => {
+  const handleAuthError = async (error: any) => {
     console.error('Auth error:', error);
     
     if (error.message.includes('refresh_token_not_found') || 
@@ -70,6 +70,7 @@ export function useAuthSession() {
 
   useEffect(() => {
     let mounted = true;
+    let authSubscription: { subscription: { unsubscribe: () => void } } | null = null;
 
     console.log('Initializing auth session...');
     
@@ -113,7 +114,7 @@ export function useAuthSession() {
     };
 
     const setupAuthListener = () => {
-      const { data: authSubscription } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      authSubscription = supabase.auth.onAuthStateChange(async (event, currentSession) => {
         if (!mounted) return;
 
         console.log('Auth state changed:', {
@@ -146,7 +147,7 @@ export function useAuthSession() {
       return authSubscription;
     };
 
-    const authSubscription = setupAuthListener();
+    setupAuthListener();
     initializeSession();
 
     return () => {
