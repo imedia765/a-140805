@@ -13,24 +13,36 @@ interface ProtectedRoutesProps {
 const AuthWrapper = ({ session }: { session: Session | null }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      console.log('Auth state change in router:', event);
+      console.log('Auth state change in router:', event, {
+        platform: isMobile ? 'mobile' : 'desktop',
+        path: window.location.pathname
+      });
       
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !currentSession) {
+      if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
         console.log('User signed out or token refresh failed, redirecting to login');
-        navigate('/login', { replace: true });
+        if (isMobile) {
+          window.location.href = '/login';
+        } else {
+          navigate('/login', { replace: true });
+        }
       } else if (event === 'SIGNED_IN' && currentSession) {
         console.log('User signed in, redirecting to home');
-        navigate('/', { replace: true });
+        if (isMobile) {
+          window.location.href = '/';
+        } else {
+          navigate('/', { replace: true });
+        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
