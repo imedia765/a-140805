@@ -310,6 +310,36 @@ export type Database = {
           },
         ]
       }
+      maintenance_settings: {
+        Row: {
+          created_at: string | null
+          enabled_at: string | null
+          enabled_by: string | null
+          id: string
+          is_enabled: boolean | null
+          message: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          message?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          message?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       member_notes: {
         Row: {
           created_at: string
@@ -802,6 +832,12 @@ export type Database = {
           details: Json
         }[]
       }
+      can_access_during_maintenance: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
       check_api_health: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -971,6 +1007,10 @@ export type Database = {
         Args: {
           due_date: string
         }
+        Returns: boolean
+      }
+      is_system_in_maintenance: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_valid_member_number: {
