@@ -4,142 +4,120 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 
-export const useAuthSession = () => {
+export function useAuthSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const handleSignOut = async (skipStorageClear = false) => {
+    console.log('[Auth] Starting sign out process...');
+    if (isLoggingOut) {
+      console.log('[Auth] Logout already in progress, skipping...');
+      return;
+    }
+
     try {
-      console.log('Starting sign out process...');
+      setIsLoggingOut(true);
       setLoading(true);
       
+      console.log('[Auth] Clearing query cache...');
       await queryClient.resetQueries();
       await queryClient.clear();
       
       if (!skipStorageClear) {
+        console.log('[Auth] Clearing local storage...');
         localStorage.clear();
         sessionStorage.clear();
       }
       
+      console.log('[Auth] Signing out from Supabase...');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      console.log('Sign out successful');
+      console.log('[Auth] Sign out successful');
       setSession(null);
-      
       window.location.href = '/login';
       
     } catch (error: any) {
-      console.error('Error during sign out:', error);
+      console.error('[Auth] Error during sign out:', error);
       toast({
         title: "Error signing out",
         description: error.message.includes('502') 
-          ? "Network connection error. Please check your connection and try again."
+          ? "Failed to connect to the server. Please check your network connection and try again."
           : error.message,
         variant: "destructive",
       });
     } finally {
+      setIsLoggingOut(false);
       setLoading(false);
-    }
-  };
-
-  const handleAuthError = async (error: any) => {
-    console.error('Auth error:', error);
-    
-    if (error.message.includes('refresh_token_not_found') || 
-        error.message.includes('invalid refresh token')) {
-      console.log('Token refresh failed, signing out...');
-      await handleSignOut(true);
-      
-      toast({
-        title: "Session Expired",
-        description: "Please sign in again",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Authentication Error",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
   useEffect(() => {
     let mounted = true;
-    let authSubscription: { data: { subscription: { unsubscribe: () => void } } } | null = null;
+    console.log('[Auth] Session hook mounted');
 
-    console.log('Initializing auth session...');
-    
     const initializeSession = async () => {
       try {
+        console.log('[Auth] Initializing session...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting session:', error);
-          handleAuthError(error);
-          return;
+          console.error('[Auth] Session initialization error:', error);
+          throw error;
         }
-
+        
         if (mounted) {
-          console.log('Session initialized:', {
+          console.log('[Auth] Setting session state:', {
             hasSession: !!currentSession,
-            userId: currentSession?.user?.id
+            userId: currentSession?.user?.id,
+            timestamp: new Date().toISOString()
           });
-          
           setSession(currentSession);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Unexpected error during session initialization:', error);
+        console.error('[Auth] Session initialization failed:', error);
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    const setupAuthListener = () => {
-      const { data } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-        if (!mounted) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      if (!mounted) return;
 
-        console.log('Auth state changed:', {
-          event,
-          hasSession: !!currentSession,
-          userId: currentSession?.user?.id
-        });
-
-        if (event === 'SIGNED_OUT') {
-          setSession(null);
-          queryClient.clear();
-          window.location.href = '/';
-        } else if (event === 'SIGNED_IN') {
-          setSession(currentSession);
-          window.location.href = '/';
-        } else {
-          setSession(currentSession);
-        }
+      console.log('[Auth] Auth state changed:', {
+        event,
+        hasSession: !!currentSession,
+        userId: currentSession?.user?.id,
+        timestamp: new Date().toISOString()
       });
+      
+      if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !currentSession)) {
+        console.log('[Auth] User signed out or token refresh failed');
+        window.location.href = '/login';
+        return;
+      }
 
-      authSubscription = data;
-      return data;
-    };
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        console.log('[Auth] User signed in or token refreshed');
+        setSession(currentSession);
+        queryClient.invalidateQueries({ queryKey: ['userRoles'] });
+      }
+      
+      setLoading(false);
+    });
 
-    setupAuthListener();
     initializeSession();
 
     return () => {
       mounted = false;
-      if (authSubscription?.subscription) {
-        authSubscription.subscription.unsubscribe();
-      }
+      subscription.unsubscribe();
     };
   }, [queryClient, toast]);
 
-  return {
-    session,
-    loading,
-    handleSignOut
-  };
-};
+  return { session, loading, handleSignOut };
+}

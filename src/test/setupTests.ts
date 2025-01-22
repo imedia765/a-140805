@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup } from '@testing-library/react';
 import { expect, afterEach, vi } from 'vitest';
+
+// Setup a basic DOM environment for tests
 import { JSDOM } from 'jsdom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', {
   url: 'http://localhost:3000',
@@ -11,7 +11,6 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
   resources: 'usable'
 });
 
-// Correctly type the window object
 global.window = dom.window as unknown as Window & typeof globalThis;
 global.document = dom.window.document;
 global.navigator = {
@@ -26,7 +25,7 @@ global.localStorage = {
   clear: vi.fn(),
   length: 0,
   key: vi.fn(),
-};
+} as Storage;
 
 // Mock window.matchMedia
 global.window.matchMedia = vi.fn().mockImplementation(query => ({
@@ -39,23 +38,6 @@ global.window.matchMedia = vi.fn().mockImplementation(query => ({
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
 }));
-
-// Create a wrapper with providers for testing
-export const renderWithProviders = (ui: ReactNode) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {ui}
-    </QueryClientProvider>
-  );
-};
 
 // Cleanup after each test case
 afterEach(() => {

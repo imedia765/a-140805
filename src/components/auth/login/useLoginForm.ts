@@ -22,16 +22,19 @@ export const useLoginForm = () => {
       const isMobile = window.innerWidth <= 768;
       console.log('Starting login process on device type:', isMobile ? 'mobile' : 'desktop');
 
+      // Skip clearing auth state on login attempt
       const member = await verifyMember(memberNumber);
       const { email, password } = getAuthCredentials(memberNumber);
       
       console.log('Attempting sign in with:', { email });
       
+      // Try to sign in
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      // If sign in fails due to invalid credentials, try to sign up
       if (signInError && signInError.message.includes('Invalid login credentials')) {
         console.log('Sign in failed, attempting signup');
         
@@ -56,6 +59,7 @@ export const useLoginForm = () => {
 
           console.log('Member updated and role assigned, attempting final sign in');
           
+          // Final sign in attempt after successful signup
           const { data: finalSignInData, error: finalSignInError } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -74,9 +78,11 @@ export const useLoginForm = () => {
         await handleSignInError(signInError, email, password);
       }
 
+      // Clear any existing queries before proceeding
       await queryClient.cancelQueries();
       await queryClient.clear();
 
+      // Verify session is established
       console.log('Verifying session...');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
@@ -98,6 +104,7 @@ export const useLoginForm = () => {
         description: "Welcome back!",
       });
 
+      // Use replace to prevent back button issues
       if (isMobile) {
         window.location.href = '/';
       } else {
