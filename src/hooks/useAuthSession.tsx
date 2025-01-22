@@ -89,13 +89,15 @@ export function useAuthSession() {
 
             if (!isAdmin) {
               console.log('[Auth] Non-admin user blocked during maintenance mode');
-              await handleSignOut(false);
+              await handleSignOut(true);
               toast({
                 title: "System Maintenance",
                 description: "System is currently under maintenance. Only administrators can access the system.",
                 variant: "destructive",
               });
               return;
+            } else {
+              console.log('[Auth] Admin user allowed during maintenance mode');
             }
           }
         }
@@ -150,13 +152,15 @@ export function useAuthSession() {
 
           if (!isAdmin) {
             console.log('[Auth] Non-admin user blocked during maintenance mode');
-            await handleSignOut(false);
+            await handleSignOut(true);
             toast({
               title: "System Maintenance",
               description: "System is currently under maintenance. Only administrators can access the system.",
               variant: "destructive",
             });
             return;
+          } else {
+            console.log('[Auth] Admin user allowed during maintenance mode');
           }
         }
 
