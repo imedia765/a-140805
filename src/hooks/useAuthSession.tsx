@@ -68,39 +68,6 @@ export function useAuthSession() {
           console.error('[Auth] Session initialization error:', error);
           throw error;
         }
-
-        if (currentSession) {
-          // Check if system is in maintenance mode
-          const { data: maintenanceData, error: maintenanceError } = await supabase
-            .from('maintenance_settings')
-            .select('is_enabled')
-            .single();
-
-          if (maintenanceError) {
-            console.error('[Auth] Error checking maintenance mode:', maintenanceError);
-          } else if (maintenanceData?.is_enabled) {
-            // Check if user is admin
-            const { data: roles } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', currentSession.user.id);
-
-            const isAdmin = roles?.some(r => r.role === 'admin');
-
-            if (!isAdmin) {
-              console.log('[Auth] Non-admin user blocked during maintenance mode');
-              await handleSignOut(true);
-              toast({
-                title: "System Maintenance",
-                description: "System is currently under maintenance. Only administrators can access the system.",
-                variant: "destructive",
-              });
-              return;
-            } else {
-              console.log('[Auth] Admin user allowed during maintenance mode');
-            }
-          }
-        }
         
         if (mounted) {
           console.log('[Auth] Setting session state:', {
@@ -119,7 +86,7 @@ export function useAuthSession() {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       if (!mounted) return;
 
       console.log('[Auth] Auth state changed:', {
@@ -136,34 +103,6 @@ export function useAuthSession() {
       }
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // Check maintenance mode on sign in
-        const { data: maintenanceData } = await supabase
-          .from('maintenance_settings')
-          .select('is_enabled')
-          .single();
-
-        if (maintenanceData?.is_enabled) {
-          const { data: roles } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', currentSession?.user.id);
-
-          const isAdmin = roles?.some(r => r.role === 'admin');
-
-          if (!isAdmin) {
-            console.log('[Auth] Non-admin user blocked during maintenance mode');
-            await handleSignOut(true);
-            toast({
-              title: "System Maintenance",
-              description: "System is currently under maintenance. Only administrators can access the system.",
-              variant: "destructive",
-            });
-            return;
-          } else {
-            console.log('[Auth] Admin user allowed during maintenance mode');
-          }
-        }
-
         console.log('[Auth] User signed in or token refreshed');
         setSession(currentSession);
         queryClient.invalidateQueries({ queryKey: ['userRoles'] });

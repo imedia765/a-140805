@@ -7,7 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import SystemCheckProgress from './SystemCheckProgress';
 import SystemCheckResults from './SystemCheckResults';
-import MaintenanceControls from './maintenance/MaintenanceControls';
 import { generateSystemCheckPDF } from '@/utils/systemPdfGenerator';
 import { SystemCheck, MemberNumberCheck } from '@/types/system';
 import { runAdditionalChecks } from './AdditionalSystemChecks';
@@ -137,80 +136,76 @@ const SystemHealthCheck = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <MaintenanceControls />
-      
-      <Card className="bg-dashboard-card border-white/10">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-dashboard-accent1" />
-              <CardTitle className="text-xl text-white">System Health Check</CardTitle>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={clearResults}
-                variant="outline"
-                className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10"
-                disabled={isRunningChecks || systemChecks.length === 0}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Results
-              </Button>
-              <Button 
-                onClick={generatePDFReport}
-                variant="outline"
-                className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10"
-                disabled={isRunningChecks || systemChecks.length === 0}
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                Export PDF
-              </Button>
-              <Button 
-                onClick={runSystemChecks}
-                disabled={isRunningChecks}
-                className="bg-dashboard-accent1 hover:bg-dashboard-accent1/80"
-              >
-                Run System Checks
-              </Button>
-            </div>
+    <Card className="bg-dashboard-card border-white/10">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-dashboard-accent1" />
+            <CardTitle className="text-xl text-white">System Health Check</CardTitle>
           </div>
-          <CardDescription className="text-dashboard-muted">
-            Comprehensive system analysis and security audit
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[600px] w-full rounded-md">
-            {isRunningChecks ? (
-              <SystemCheckProgress
-                currentCheck={currentCheck}
-                progress={(completedChecks / CHECKS.length) * 100}
-                totalChecks={CHECKS.length}
-                completedChecks={completedChecks}
-              />
-            ) : null}
-            
-            {systemChecks.length > 0 ? (
-              <SystemCheckResults checks={systemChecks} />
-            ) : !isRunningChecks ? (
-              <Card className="border-dashboard-accent1/20 bg-dashboard-card/50">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-dashboard-accent1" />
-                    <CardTitle className="text-dashboard-accent1">No Issues Found</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-dashboard-accent1/80">
-                    All system checks passed successfully. Your system is healthy and secure.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : null}
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={clearResults}
+              variant="outline"
+              className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10"
+              disabled={isRunningChecks || systemChecks.length === 0}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear Results
+            </Button>
+            <Button 
+              onClick={generatePDFReport}
+              variant="outline"
+              className="border-dashboard-accent1/20 hover:bg-dashboard-accent1/10"
+              disabled={isRunningChecks || systemChecks.length === 0}
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button 
+              onClick={runSystemChecks}
+              disabled={isRunningChecks}
+              className="bg-dashboard-accent1 hover:bg-dashboard-accent1/80"
+            >
+              Run System Checks
+            </Button>
+          </div>
+        </div>
+        <CardDescription className="text-dashboard-muted">
+          Comprehensive system analysis and security audit
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[600px] w-full rounded-md">
+          {isRunningChecks ? (
+            <SystemCheckProgress
+              currentCheck={currentCheck}
+              progress={(completedChecks / CHECKS.length) * 100}
+              totalChecks={CHECKS.length}
+              completedChecks={completedChecks}
+            />
+          ) : null}
+          
+          {systemChecks.length > 0 ? (
+            <SystemCheckResults checks={systemChecks} />
+          ) : !isRunningChecks ? (
+            <Card className="border-dashboard-accent1/20 bg-dashboard-card/50">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-dashboard-accent1" />
+                  <CardTitle className="text-dashboard-accent1">No Issues Found</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-dashboard-accent1/80">
+                  All system checks passed successfully. Your system is healthy and secure.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 };
 
